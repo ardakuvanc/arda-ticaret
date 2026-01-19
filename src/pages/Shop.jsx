@@ -16,9 +16,6 @@ export default function Shop() {
         <div className="pb-10">
             <div className="flex items-center justify-between mb-4">
                 <h1 className="text-2xl font-hand font-bold text-love-600">Sevgi Mağazası</h1>
-                <div className="bg-white p-2 rounded-full shadow-sm text-gray-400">
-                    <Filter size={20} />
-                </div>
             </div>
 
             {/* Category Pills */}
@@ -28,8 +25,8 @@ export default function Shop() {
                         key={cat}
                         onClick={() => setActiveCategory(cat)}
                         className={`px-4 py-2 rounded-full text-sm font-bold whitespace-nowrap transition-colors ${activeCategory === cat
-                                ? 'bg-love-500 text-white shadow-md'
-                                : 'bg-white text-gray-500 border border-gray-100'
+                            ? 'bg-love-500 text-white shadow-md'
+                            : 'bg-white text-gray-500 border border-gray-100'
                             }`}
                     >
                         {cat}
