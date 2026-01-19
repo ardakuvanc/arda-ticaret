@@ -1,109 +1,207 @@
-export const DB_KEY = 'love_store_db';
+import { db } from './firebase';
+import {
+    doc,
+    getDoc,
+    setDoc,
+    updateDoc,
+    collection,
+    getDocs,
+    addDoc,
+    deleteDoc,
+    arrayUnion,
+    increment,
+    query,
+    where
+} from 'firebase/firestore';
 
-const DEFAULT_PRODUCTS = [
-    { id: '1', title: 'Bulaşıkları Ben Yıkarım', price: 100, category: 'Ev İşleri', image: '🍽️' },
-    { id: '2', title: '1 Saat Masaj', price: 200, category: 'Özel Haklar', image: '💆‍♀️' },
-    { id: '3', title: 'İstediğin Yemek Siparişi', price: 300, category: 'Yeme & İçme', image: '🍔' },
-    { id: '4', title: 'Trip Atma Hakkı (Sorgusuz)', price: 500, category: 'Özel Haklar', image: '😤' },
-    { id: '5', title: 'Film Gecesi Seçimi', price: 150, category: 'Aktivite', image: '🎬' },
-    { id: '6', title: 'Kahve Ismarla', price: 50, category: 'Yeme & İçme', image: '☕' },
-];
-
-const DEFAULT_USER = {
-    balance: 0,
-    lastSpin: null,
-    history: [],
-    name: 'Aşkım',
-    isAdmin: false
-};
-
-// Helper to get/set local storage
-const getDB = () => {
-    const stored = localStorage.getItem(DB_KEY);
-    if (!stored) {
-        const initial = {
-            user: DEFAULT_USER,
-            products: DEFAULT_PRODUCTS,
-            codes: [
-                { code: 'SENICOKSEVIYORUM', value: 1000, active: true },
-                { code: 'SURPRIZ', value: 500, active: true }
-            ]
-        };
-        localStorage.setItem(DB_KEY, JSON.stringify(initial));
-        return initial;
-    }
-    return JSON.parse(stored);
-};
-
-const saveDB = (data) => {
-    localStorage.setItem(DB_KEY, JSON.stringify(data));
-    window.dispatchEvent(new Event('db-update'));
-};
+// --- AYARLAR ---
+const DAILY_SPIN_LIMIT = 1;
 
 export const api = {
-    getData: () => getDB(),
+    // --- USER DATA ---
+    getUserData: async (uid) => {
+        const userRef = doc(db, "users", uid);
+        const userSnap = await getDoc(userRef);
 
-    spinWheel: (prize) => {
-        const db = getDB();
-        const now = new Date().toISOString();
-
-        if (db.user.lastSpin) {
-            const last = new Date(db.user.lastSpin).toDateString();
-            const today = new Date().toDateString();
-
-            // --- GÜNLÜK SINIR AYARI ---
-            // Sınırı kaldırmak için alttaki 3 satırı yorum satırına (//) alın:
-            //if (last === today) {
-            //  throw new Error("Bugün zaten şansını denedin aşkım! Yarın yine gel ❤️");
-            //}
-            // ---------------------------
+        if (userSnap.exists()) {
+            return userSnap.data();
+        } else {
+            // New user init (should be handled in signup, but fallback here)
+            return null;
         }
-
-        db.user.balance += prize;
-        db.user.lastSpin = now;
-        db.user.history.unshift({
-            id: Date.now(),
-            type: 'earn',
-            description: 'Günün Şansı',
-            amount: prize,
-            date: now
-        });
-
-        saveDB(db);
-        return db.user;
     },
 
-    purchaseCart: async (cartItems, totalCost) => {
-        const db = getDB();
-        if (db.user.balance < totalCost) {
-            throw new Error("Yeterli sevgi puanın yok kıvırcığım 🥺 Biraz biriktirelim!");
+    initializeUser: async (uid, email, name) => {
+        // Sadece arda@admin.com admin olabilir
+        const isAdmin = email === "arda@admin.com";
+        const newUser = {
+            name: name || 'Aşkım',
+            email,
+            balance: 0,
+            isAdmin: isAdmin,
+            lastSpinDate: null,
+            spinCount: 0,
+            history: []
+        };
+        await setDoc(doc(db, "users", uid), newUser);
+        return newUser;
+    },
+
+    // --- PRODUCTS ---
+    getProducts: async () => {
+        const querySnapshot = await getDocs(collection(db, "products"));
+        const products = [];
+        querySnapshot.forEach((doc) => {
+            products.push({ id: doc.id, ...doc.data() });
+        });
+        return products;
+    },
+
+    addProduct: async (product) => {
+        const docRef = await addDoc(collection(db, "products"), product);
+        return { id: docRef.id, ...product };
+    },
+
+    deleteProduct: async (id) => {
+        await deleteDoc(doc(db, "products", id));
+    },
+
+    // --- CODES ---
+    getCodes: async () => {
+        // Admin only ideally
+        const querySnapshot = await getDocs(collection(db, "codes"));
+        const codes = [];
+        querySnapshot.forEach((doc) => {
+            codes.push({ id: doc.id, ...doc.data() });
+        });
+        return codes;
+    },
+
+    addCode: async (codeObj) => {
+        // Dublike Kontrolü
+        const q = query(collection(db, "codes"), where("code", "==", codeObj.code));
+        const querySnapshot = await getDocs(q);
+
+        if (!querySnapshot.empty) {
+            throw new Error("Bu kod zaten var aşkım! Başka bir şey bul 🤔");
         }
 
-        db.user.balance -= totalCost;
+        await addDoc(collection(db, "codes"), codeObj);
+    },
 
-        const itemsSummary = cartItems.map(i => `${i.title} (${i.quantity}x)`).join(', ');
+    deleteCode: async (id) => {
+        // Find doc by code string if id is unknown, but better to pass doc ID.
+        // For simplicity let's assume we pass doc ID or query it.
+        // If we only have the code string:
+        const ref = collection(db, "codes");
+        const snapshot = await getDocs(ref);
+        snapshot.forEach(async d => {
+            if (d.data().code === id) {
+                await deleteDoc(doc(db, "codes", d.id));
+            }
+        });
+    },
 
-        db.user.history.unshift({
-            id: Date.now(),
-            type: 'spend',
-            description: `Sipariş: ${itemsSummary}`,
-            amount: -totalCost,
-            date: new Date().toISOString()
+    redeemCode: async (uid, code) => {
+        const codesRef = collection(db, "codes");
+        const snapshot = await getDocs(codesRef);
+        let foundDoc = null;
+
+        snapshot.forEach(doc => {
+            const data = doc.data();
+            if (data.code === code && data.active) {
+                foundDoc = { id: doc.id, ...data };
+            }
         });
 
-        saveDB(db);
+        if (!foundDoc) {
+            throw new Error("Bu kod geçerli değil veya kullanılmış 😢");
+        }
 
-        // Call Netlify Function
-        // IMPORTANT: For this to work locally, you need `netlify dev`.
-        // Or we can just log it console for now if 404.
+        // Update User
+        const userRef = doc(db, "users", uid);
+        await updateDoc(userRef, {
+            balance: increment(foundDoc.value),
+            history: arrayUnion({
+                id: Date.now(),
+                type: 'earn',
+                description: `Hediye Kodu: ${code}`,
+                amount: foundDoc.value,
+                date: new Date().toISOString()
+            })
+        });
+
+        // Deactivate Code
+        await updateDoc(doc(db, "codes", foundDoc.id), {
+            active: false
+        });
+
+        return foundDoc.value;
+    },
+
+    // --- ACTIONS ---
+    spinWheel: async (uid, prize) => {
+        const userRef = doc(db, "users", uid);
+        const userSnap = await getDoc(userRef);
+        const userData = userSnap.data();
+
+        const now = new Date();
+        const todayStr = now.toDateString();
+
+        // Control Logic
+        let currentSpins = userData.spinCount || 0;
+
+        // Reset if new day
+        if (userData.lastSpinDate !== todayStr) {
+            currentSpins = 0;
+            // We need to update this reset in DB as well, getting ready for the write
+        }
+
+        if (currentSpins >= DAILY_SPIN_LIMIT) {
+            throw new Error("Bugünlük çark hakkın doldu aşkım! Yarın yine gel ❤️"); // 00:00 logic is implicit by date string change
+        }
+
+        await updateDoc(userRef, {
+            balance: increment(prize),
+            lastSpinDate: todayStr,
+            spinCount: (userData.lastSpinDate !== todayStr) ? 1 : increment(1),
+
+            history: arrayUnion({
+                id: Date.now(),
+                type: 'earn',
+                description: 'Günün Şansı',
+                amount: prize,
+                date: now.toISOString()
+            })
+        });
+    },
+
+    purchaseCart: async (uid, cartItems, totalCost, userName) => {
+        const userRef = doc(db, "users", uid);
+        const userSnap = await getDoc(userRef);
+
+        if (userSnap.data().balance < totalCost) {
+            throw new Error("Yeterli sevgi puanın yok 🥺 biraz biriktir!");
+        }
+
+        await updateDoc(userRef, {
+            balance: increment(-totalCost),
+            history: arrayUnion({
+                id: Date.now(),
+                type: 'spend',
+                description: `Sipariş (${cartItems.length} ürün)`,
+                amount: -totalCost,
+                date: new Date().toISOString()
+            })
+        });
+
+        // Notification - DIRECT CALL FOR RELIABILITY
         try {
-            // DIRECT TELEGRAM CALL (For Local Testing)
-            // Normalde backend üzerinden yapılır ama npm run dev ile test ederken garantili olsun diye buradan atıyoruz.
             const TOKEN = "8436130388:AAE50k6sRCXQM0R__2zHoaoTKqJ3vAGsBVg";
             const CHAT_ID = "1132170971";
 
             const itemText = cartItems.map(i => `- ${i.title} (${i.quantity} adet)`).join('\n');
-            const message = `🚨 *YENİ SİPARİŞ!* 🚨\n\n👤 *Kullanıcı:* ${db.user.name}\n💰 *Tutar:* ${totalCost} SP\n\n🛒 *Ürünler:*\n${itemText}\n\n❤️ _Hemen ilgilen!_`;
+            const message = `🚨 *YENİ SİPARİŞ!* 🚨\n\n👤 *Kullanıcı:* ${userName}\n💰 *Tutar:* ${totalCost} SP\n\n🛒 *Ürünler:*\n${itemText}\n\n❤️ _Hemen ilgilen!_`;
 
             await fetch(`https://api.telegram.org/bot${TOKEN}/sendMessage`, {
                 method: 'POST',
@@ -114,84 +212,8 @@ export const api = {
                     parse_mode: 'Markdown'
                 })
             });
-            console.log("Telegram mesajı gönderildi! ✅");
         } catch (e) {
-            console.log('Notification sending failed:', e);
+            console.log('Notification Err:', e);
         }
-
-        return db.user;
-    },
-
-    redeemCode: (code) => {
-        const db = getDB();
-        const foundCode = db.codes.find(c => c.code === code && c.active);
-
-        if (!foundCode) {
-            throw new Error("Bu kod geçerli değil veya kullanılmış 😢");
-        }
-
-        db.user.balance += foundCode.value;
-        db.user.history.unshift({
-            id: Date.now(),
-            type: 'earn',
-            description: `Hediye Kodu: ${code}`,
-            amount: foundCode.value,
-            date: new Date().toISOString()
-        });
-
-        foundCode.active = false;
-        saveDB(db);
-        return foundCode.value;
-    },
-
-    addProduct: (product) => {
-        const db = getDB();
-        const newProduct = { ...product, id: Date.now().toString() };
-        db.products.push(newProduct);
-        saveDB(db);
-        return newProduct;
-    },
-
-    deleteProduct: (id) => {
-        const db = getDB();
-        db.products = db.products.filter(p => p.id !== id);
-        saveDB(db);
-    },
-
-    updateProduct: (product) => {
-        const db = getDB();
-        const index = db.products.findIndex(p => p.id === product.id);
-        if (index !== -1) {
-            db.products[index] = product;
-            saveDB(db);
-        }
-    },
-
-    // --- CODE MANAGEMENT ---
-    addCode: (codeObj) => {
-        const db = getDB();
-        // Check duplicate
-        if (!db.codes) db.codes = [];
-        if (db.codes.find(c => c.code === codeObj.code)) {
-            // Overwrite if exists logic? specific message?
-            // Let's just update
-            const index = db.codes.findIndex(c => c.code === codeObj.code);
-            db.codes[index] = codeObj;
-        } else {
-            db.codes.push(codeObj);
-        }
-        saveDB(db);
-    },
-
-    deleteCode: (codeStr) => {
-        const db = getDB();
-        if (!db.codes) return;
-        db.codes = db.codes.filter(c => c.code !== codeStr);
-        saveDB(db);
-    },
-
-    resetData: () => {
-        localStorage.removeItem(DB_KEY);
-        window.location.reload();
     }
 };

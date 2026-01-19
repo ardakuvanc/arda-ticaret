@@ -1,6 +1,7 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
-import { Toaster } from 'react-hot-toast';
 import { StoreProvider } from './context/StoreContext';
+import { useStore } from './context/StoreContext';
+import { Toaster } from 'react-hot-toast';
 import Layout from './components/Layout';
 import Home from './pages/Home';
 import Shop from './pages/Shop';
@@ -8,22 +9,46 @@ import WheelPage from './pages/WheelPage';
 import Profile from './pages/Profile';
 import CartPage from './pages/CartPage';
 import AdminPage from './pages/AdminPage';
+import LoginPage from './pages/LoginPage';
 
-// Placeholder components until real ones are written
-const Temp = ({ title }) => <div className="p-10 text-center font-bold text-love-400">{title} yapım aşamasında... 🚧</div>;
+// --- Protected Route Component ---
+const ProtectedRoute = ({ children }) => {
+  const { user, loading } = useStore();
+  if (loading) return <div>Yükleniyor...</div>;
+  if (!user) return <Navigate to="/login" replace />;
+  return children;
+};
 
-function App() {
+// --- Admin Route Component ---
+const AdminRoute = ({ children }) => {
+  const { user, loading } = useStore();
+  if (loading) return <div>Yükleniyor...</div>;
+  if (!user || !user.isAdmin) return <Navigate to="/" replace />;
+  return children;
+};
+
+export default function App() {
   return (
     <StoreProvider>
       <BrowserRouter>
         <Routes>
-          <Route path="/" element={<Layout />}>
+          <Route path="/login" element={<LoginPage />} />
+
+          <Route path="/" element={
+            <ProtectedRoute>
+              <Layout />
+            </ProtectedRoute>
+          }>
             <Route index element={<Home />} />
             <Route path="shop" element={<Shop />} />
             <Route path="wheel" element={<WheelPage />} />
             <Route path="profile" element={<Profile />} />
             <Route path="cart" element={<CartPage />} />
-            <Route path="admin" element={<AdminPage />} />
+            <Route path="admin" element={
+              <AdminRoute>
+                <AdminPage />
+              </AdminRoute>
+            } />
           </Route>
         </Routes>
         <Toaster
@@ -44,5 +69,3 @@ function App() {
     </StoreProvider>
   );
 }
-
-export default App;

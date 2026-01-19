@@ -3,9 +3,13 @@ import { Trash2, ShoppingBag, ArrowRight } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
 export default function CartPage() {
-    const { cart, removeFromCart, updateQuantity, cartTotal, purchase } = useStore();
+    const { cart, removeFromCart, updateQuantity, purchase } = useStore();
+
+    // Calculate total locally
+    const totalCost = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
 
     if (cart.length === 0) {
+        // ... (empty cart view)
         return (
             <div className="flex flex-col items-center justify-center py-20 text-center">
                 <div className="bg-love-50 p-6 rounded-full text-love-200 mb-4">
@@ -20,6 +24,7 @@ export default function CartPage() {
 
     return (
         <div>
+            {/* ... item list ... */}
             <h1 className="text-2xl font-hand font-bold text-love-600 mb-6">Sepetim</h1>
 
             <div className="space-y-4 mb-32">
@@ -48,7 +53,7 @@ export default function CartPage() {
                 <div className="bg-white p-5 rounded-3xl shadow-[0_-4px_20px_rgba(0,0,0,0.05)] md:shadow-sm border border-gray-50 max-w-lg mx-auto">
                     <div className="flex justify-between items-center mb-4">
                         <span className="text-gray-500 text-sm">Toplam Tutar</span>
-                        <span className="text-xl font-bold text-love-600">{cartTotal} SP</span>
+                        <span className="text-xl font-bold text-love-600">{totalCost} SP</span>
                     </div>
                     <button
                         onClick={purchase}

@@ -1,11 +1,19 @@
 import { useState } from 'react';
 import { useStore } from '../context/StoreContext';
 import { Gift, Clock, LogOut } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 
 export default function Profile() {
-    const { user, redeemCode, api } = useStore();
+    const { user, redeemCode, logout } = useStore();
     const [code, setCode] = useState('');
+    const navigate = useNavigate();
+
+    const handleLogout = async () => {
+        if (confirm('Çıkış yapmak istediğine emin misin?')) {
+            await logout();
+            navigate('/login');
+        }
+    };
 
     const handleRedeem = (e) => {
         e.preventDefault();
@@ -72,12 +80,19 @@ export default function Profile() {
             </div>
 
             <div className="py-4 text-center">
-                <button onClick={() => { if (confirm('Sıfırlamak istediğine emin misin?')) api.resetData() }} className="text-xs text-red-300 underline">
-                    Verileri Sıfırla (Çıkış)
+                <button
+                    onClick={handleLogout}
+                    className="flex items-center justify-center gap-2 mx-auto text-sm text-red-400 font-bold bg-red-50 hover:bg-red-100 py-2 px-4 rounded-xl transition-colors"
+                >
+                    <LogOut size={16} />
+                    Çıkış Yap
                 </button>
-                <div className="mt-2 text-center w-full">
-                    <Link to="/admin" className="text-[10px] text-gray-300 hover:text-love-400">Admin Paneli</Link>
-                </div>
+
+                {user.isAdmin && (
+                    <div className="mt-4 text-center w-full">
+                        <Link to="/admin" className="text-xs text-love-400 hover:text-love-600 font-bold border border-love-100 px-3 py-1 rounded-full">🔧 Admin Paneline Geç</Link>
+                    </div>
+                )}
             </div>
         </div>
     );
