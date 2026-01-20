@@ -11,7 +11,8 @@ import {
     arrayUnion,
     increment,
     query,
-    where
+    where,
+    orderBy
 } from 'firebase/firestore';
 
 // --- AYARLAR ---
@@ -176,32 +177,44 @@ export const api = {
         });
     },
 
-    purchaseCart: async (uid, cartItems, totalCost, userName) => {
+    purchaseCart: async (uid, cartItems, totalCost) => {
         const userRef = doc(db, "users", uid);
         const userSnap = await getDoc(userRef);
+        const userData = userSnap.data();
 
-        if (userSnap.data().balance < totalCost) {
+        if (userData.balance < totalCost) {
             throw new Error("Ytrl svgi pnın yk mlsf 🥺 brz brktr!");
         }
 
+        // 1. Bakiyeden düş
         await updateDoc(userRef, {
             balance: increment(-totalCost),
             history: arrayUnion({
                 id: Date.now(),
                 type: 'spend',
                 description: `Sipariş (${cartItems.length} ürün)`,
-                amount: -totalCost,
+                amount: totalCost,
                 date: new Date().toISOString()
             })
         });
 
-        // Notification - DIRECT CALL FOR RELIABILITY
+        // 2. Sipariş Kaydı Oluştur (Orders Collection)
+        await addDoc(collection(db, "orders"), {
+            userId: uid,
+            userName: userData.name,
+            items: cartItems,
+            totalPrice: totalCost,
+            status: 'pending', // pending | delivered
+            createdAt: new Date().toISOString()
+        });
+
+        // 3. Bildirim
         try {
             const TOKEN = "8436130388:AAE50k6sRCXQM0R__2zHoaoTKqJ3vAGsBVg";
             const CHAT_ID = "1132170971";
 
             const itemText = cartItems.map(i => `- ${i.title} (${i.quantity} adet)`).join('\n');
-            const message = `🚨 *YENİ SİPARİŞ!* 🚨\n\n👤 *Kullanıcı:* ${userName}\n💰 *Tutar:* ${totalCost} SP\n\n🛒 *Ürünler:*\n${itemText}\n\n❤️ _Hemen ilgilen!_`;
+            const message = `🚨 *YENİ SİPARİŞ!* 🚨\n\n👤 *Kullanıcı:* ${userData.name}\n💰 *Tutar:* ${totalCost} SP\n\n🛒 *Ürünler:*\n${itemText}\n\n❤️ _Hemen ilgilen!_`;
 
             await fetch(`https://api.telegram.org/bot${TOKEN}/sendMessage`, {
                 method: 'POST',
@@ -215,5 +228,23 @@ export const api = {
         } catch (e) {
             console.log('Notification Err:', e);
         }
+    },
+
+    // --- ORDERS ---
+    getOrders: async (uid) => {
+        const q = query(
+            collection(db, "orders"),
+            where("userId", "==", uid),
+            orderBy("createdAt", "desc")
+        );
+        const snapshot = await getDocs(q);
+        return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    },
+
+    completeOrder: async (orderId) => {
+        const orderRef = doc(db, "orders", orderId);
+        await updateDoc(orderRef, {
+            status: 'delivered'
+        });
     }
 };

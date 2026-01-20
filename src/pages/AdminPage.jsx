@@ -136,12 +136,21 @@ function ProductManager({ products, api }) {
                         </div>
                         <div className="flex-1">
                             <label className="block text-xs font-bold text-gray-500 mb-1">Kategori</label>
-                            <input
+                            <select
                                 value={newProduct.category}
                                 onChange={e => setNewProduct({ ...newProduct, category: e.target.value })}
-                                className="w-full bg-gray-50 rounded-lg p-2 text-sm border border-gray-100 outline-none focus:ring-2 focus:ring-love-100"
-                                placeholder="Yeme & İçme"
-                            />
+                                className="w-full bg-gray-50 rounded-lg p-2 text-sm border border-gray-100 outline-none focus:ring-2 focus:ring-love-100 appearance-none"
+                            >
+                                <option value="Genel">Seçiniz...</option>
+                                <option value="Yeme & İçme">Yeme & İçme 🍔</option>
+                                <option value="Giyim & Aksesuar">Giyim & Aksesuar 👗</option>
+                                <option value="Aktivite & Eğlence">Aktivite & Eğlence 🎬</option>
+                                <option value="Masaj & Bakım">Masaj & Bakım 💆‍♀️</option>
+                                <option value="Teknoloji">Teknoloji 📱</option>
+                                <option value="Özel İstekler">Özel İstekler ✨</option>
+                                <option value="Ev & Yaşam">Ev & Yaşam 🏠</option>
+                                <option value="Diğer">Diğer 📦</option>
+                            </select>
                         </div>
                     </div>
                     <div>

@@ -99,7 +99,7 @@ export const StoreProvider = ({ children }) => {
     const purchase = async () => {
         const total = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
         try {
-            await api.purchaseCart(user.uid, cart, total, user.name);
+            await api.purchaseCart(user.uid, cart, total);
             // Refresh user data (or listen real-time? For simplicity fetch again or manually update state)
             // Ideally Firestore onSnapshot would be better, but let's manual update for now.
             const updatedUser = await api.getUserData(user.uid);

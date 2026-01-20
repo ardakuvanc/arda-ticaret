@@ -10,6 +10,7 @@ import Profile from './pages/Profile';
 import CartPage from './pages/CartPage';
 import AdminPage from './pages/AdminPage';
 import LoginPage from './pages/LoginPage';
+import OrdersPage from './pages/OrdersPage';
 
 // --- Protected Route Component ---
 const ProtectedRoute = ({ children }) => {
@@ -43,6 +44,7 @@ export default function App() {
             <Route path="shop" element={<Shop />} />
             <Route path="wheel" element={<WheelPage />} />
             <Route path="profile" element={<Profile />} />
+            <Route path="orders" element={<OrdersPage />} />
             <Route path="cart" element={<CartPage />} />
             <Route path="admin" element={
               <AdminRoute>

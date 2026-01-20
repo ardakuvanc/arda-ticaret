@@ -1,5 +1,5 @@
 import { Outlet, Link, useLocation } from 'react-router-dom';
-import { Home, ShoppingBag, Heart, User, Sparkles, Settings } from 'lucide-react';
+import { Home, ShoppingBag, Heart, User, Sparkles, Settings, Package } from 'lucide-react';
 import { useStore } from '../context/StoreContext';
 import { cn } from '../lib/utils';
 import { motion } from 'framer-motion';
@@ -12,6 +12,7 @@ export default function Layout() {
         { icon: Home, label: 'Ana Sayfa', path: '/' },
         { icon: ShoppingBag, label: 'Mağaza', path: '/shop' },
         { icon: Sparkles, label: 'Çark', path: '/wheel' },
+        { icon: Package, label: 'Sipariş', path: '/orders' },
         { icon: User, label: 'Profil', path: '/profile' },
     ];
 
