@@ -11,8 +11,10 @@ export default function Home() {
 
     const hours = new Date().getHours();
     let greeting = 'Merhaba';
-    if (hours < 12) greeting = 'Günaydın';
-    else if (hours < 18) greeting = 'Tünaydın';
+
+    if (hours >= 6 && hours < 12) greeting = 'Günaydın';
+    else if (hours >= 12 && hours < 18) greeting = 'Tünaydın';
+    else if (hours >= 18 && hours < 22) greeting = 'İyi Akşamlar';
     else greeting = 'İyi Geceler';
 
     return (

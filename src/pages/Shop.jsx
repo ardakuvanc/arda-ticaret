@@ -14,10 +14,6 @@ export default function Shop() {
 
     return (
         <div className="pb-10">
-            <div className="flex items-center justify-between mb-4">
-                <h1 className="text-2xl font-hand font-bold text-love-600">Sevgi Mağazası</h1>
-            </div>
-
             {/* Category Pills */}
             <div className="flex gap-2 overflow-x-auto pb-4 scrollbar-hide">
                 {categories.map(cat => (

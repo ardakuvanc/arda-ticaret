@@ -19,7 +19,7 @@ export default function Layout() {
         <div className="min-h-screen pb-24 md:pb-0 bg-love-50 font-sans text-gray-800">
             {/* Top Bar */}
             <div className="sticky top-0 z-40 bg-white/80 backdrop-blur-md shadow-sm px-4 py-3 flex justify-between items-center transition-all">
-                <Link to="/" className="text-2xl font-hand text-love-600 font-bold select-none">Sevgi Cüzdanı</Link>
+                <Link to="/" className="text-2xl font-hand text-love-600 font-bold select-none">Sevgi Mağazası</Link>
                 <div className="flex items-center gap-3">
                     {/* Show Cart Icon if items exist */}
                     {cart.length > 0 && (
