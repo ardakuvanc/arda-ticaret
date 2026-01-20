@@ -35,10 +35,12 @@ export default function Profile() {
             </div>
 
             {/* Redeem Code */}
-            <div className="bg-gradient-to-br from-violet-500 to-fuchsia-500 p-5 rounded-2xl shadow-lg shadow-violet-200 text-white">
-                <div className="flex items-center gap-2 mb-3">
-                    <Gift size={20} />
-                    <h2 className="font-bold">Hediye Kodu</h2>
+            <div className="bg-white p-5 rounded-2xl shadow-sm border border-gray-50">
+                <div className="flex items-center gap-3 mb-4">
+                    <div className="bg-purple-100 p-2 rounded-xl text-purple-500">
+                        <Gift size={20} />
+                    </div>
+                    <h2 className="font-bold text-gray-800">Hediye Kodu</h2>
                 </div>
                 <form onSubmit={handleRedeem} className="flex gap-2">
                     <input
@@ -46,9 +48,9 @@ export default function Profile() {
                         value={code}
                         onChange={(e) => setCode(e.target.value)}
                         placeholder="Kodunu buraya gir..."
-                        className="flex-1 rounded-xl px-4 py-2 text-gray-800 text-sm focus:outline-none focus:ring-2 focus:ring-white/50"
+                        className="flex-1 bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm text-gray-800 focus:outline-none focus:ring-2 focus:ring-love-200 transition-all"
                     />
-                    <button type="submit" className="bg-white text-yellow-500 font-bold px-4 py-2 rounded-xl text-sm hover:bg-yellow-50 transition-colors">
+                    <button type="submit" className="bg-gray-800 text-white font-bold px-6 py-2 rounded-xl text-sm hover:bg-black transition-colors">
                         Kullan
                     </button>
                 </form>
