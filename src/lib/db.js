@@ -63,6 +63,11 @@ export const api = {
         return { id: docRef.id, ...product };
     },
 
+    updateProduct: async (id, data) => {
+        const docRef = doc(db, "products", id);
+        await updateDoc(docRef, data);
+    },
+
     deleteProduct: async (id) => {
         await deleteDoc(doc(db, "products", id));
     },
@@ -79,12 +84,16 @@ export const api = {
     },
 
     addCode: async (codeObj) => {
-        // Dublike Kontrolü
-        const q = query(collection(db, "codes"), where("code", "==", codeObj.code));
+        // Dublike Kontrolü (Sadece AKTİF olanları kontrol et)
+        const q = query(
+            collection(db, "codes"),
+            where("code", "==", codeObj.code),
+            where("active", "==", true)
+        );
         const querySnapshot = await getDocs(q);
 
         if (!querySnapshot.empty) {
-            throw new Error("Bu kod zaten var! Başka bir şey bul 🤔");
+            throw new Error("Bu kod zaten var ve aktif! Başka bir şey bul 🤔");
         }
 
         await addDoc(collection(db, "codes"), codeObj);
@@ -234,11 +243,12 @@ export const api = {
     getOrders: async (uid) => {
         const q = query(
             collection(db, "orders"),
-            where("userId", "==", uid),
-            orderBy("createdAt", "desc")
+            where("userId", "==", uid)
         );
         const snapshot = await getDocs(q);
-        return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        return snapshot.docs
+            .map(doc => ({ id: doc.id, ...doc.data() }))
+            .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
     },
 
     completeOrder: async (orderId) => {

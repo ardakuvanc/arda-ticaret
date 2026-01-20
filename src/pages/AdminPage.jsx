@@ -73,23 +73,33 @@ export default function AdminPage() {
 function ProductManager({ products, api }) {
     const [newProduct, setNewProduct] = useState({ title: '', price: '', category: 'Genel', image: '' });
     const [submitting, setSubmitting] = useState(false);
+    const [editingId, setEditingId] = useState(null);
 
-    const handleAdd = async (e) => {
+    const handleSubmit = async (e) => {
         e.preventDefault();
         if (!newProduct.title || !newProduct.price) return;
 
         setSubmitting(true);
         try {
-            await api.addProduct({
-                ...newProduct,
-                price: parseInt(newProduct.price)
-            });
-            // We need to refresh product list in context ideally.
-            // Since context fetches on load, we might need a manual trigger or just reload page?
-            // Or better, let's just let user reload for now or add to local list immediately?
-            // Real solution: Context listens to Firestore collection.
-            toast.success('Ürün eklendi (Sayfayı yenileyince görünecek)');
+            if (editingId) {
+                await api.updateProduct(editingId, {
+                    ...newProduct,
+                    price: parseInt(newProduct.price)
+                });
+                toast.success('Ürün güncellendi ✨');
+            } else {
+                await api.addProduct({
+                    ...newProduct,
+                    price: parseInt(newProduct.price)
+                });
+                toast.success('Ürün eklendi ✨');
+            }
+
+            // Reset
             setNewProduct({ title: '', price: '', category: 'Genel', image: '' });
+            setEditingId(null);
+
+            // Refresh logic if needed (context usually handles)
         } catch (e) {
             toast.error(e.message);
         } finally {
@@ -97,11 +107,27 @@ function ProductManager({ products, api }) {
         }
     };
 
+    const handleEdit = (product) => {
+        setNewProduct({
+            title: product.title,
+            price: product.price,
+            category: product.category,
+            image: product.image
+        });
+        setEditingId(product.id);
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    };
+
+    const handleCancel = () => {
+        setNewProduct({ title: '', price: '', category: 'Genel', image: '' });
+        setEditingId(null);
+    };
+
     const handleDelete = async (id) => {
         if (confirm('Silmek istediğine emin misin?')) {
             try {
                 await api.deleteProduct(id);
-                toast.success('Ürün silindi (Yenileyince gider)');
+                toast.success('Ürün silindi');
             } catch (e) {
                 toast.error(e.message);
             }
@@ -110,10 +136,10 @@ function ProductManager({ products, api }) {
 
     return (
         <>
-            {/* Add Product */}
+            {/* Add/Edit Product */}
             <div className="bg-white p-5 rounded-2xl shadow-sm border border-gray-50 mb-8">
-                <h2 className="font-bold text-gray-800 mb-4">Yeni Ürün Ekle</h2>
-                <form onSubmit={handleAdd} className="space-y-3">
+                <h2 className="font-bold text-gray-800 mb-4">{editingId ? 'Ürün Düzenle' : 'Yeni Ürün Ekle'}</h2>
+                <form onSubmit={handleSubmit} className="space-y-3">
                     <div>
                         <label className="block text-xs font-bold text-gray-500 mb-1">Ürün Adı</label>
                         <input
@@ -146,7 +172,6 @@ function ProductManager({ products, api }) {
                                 <option value="Giyim & Aksesuar">Giyim & Aksesuar 👗</option>
                                 <option value="Aktivite & Eğlence">Aktivite & Eğlence 🎬</option>
                                 <option value="Masaj & Bakım">Masaj & Bakım 💆‍♀️</option>
-                                <option value="Teknoloji">Teknoloji 📱</option>
                                 <option value="Özel İstekler">Özel İstekler ✨</option>
                                 <option value="Ev & Yaşam">Ev & Yaşam 🏠</option>
                                 <option value="Diğer">Diğer 📦</option>
@@ -163,9 +188,16 @@ function ProductManager({ products, api }) {
                         />
                     </div>
 
-                    <button disabled={submitting} type="submit" className="w-full bg-love-500 text-white font-bold py-3 rounded-xl hover:bg-love-600 transition-colors flex items-center justify-center gap-2">
-                        {submitting ? <Loader2 className="animate-spin" /> : <><Plus size={18} /> Ekle</>}
-                    </button>
+                    <div className="flex gap-2">
+                        {editingId && (
+                            <button type="button" onClick={handleCancel} className="flex-1 bg-gray-200 text-gray-600 font-bold py-3 rounded-xl hover:bg-gray-300 transition-colors">
+                                Vazgeç
+                            </button>
+                        )}
+                        <button disabled={submitting} type="submit" className="flex-[2] bg-love-500 text-white font-bold py-3 rounded-xl hover:bg-love-600 transition-colors flex items-center justify-center gap-2">
+                            {submitting ? <Loader2 className="animate-spin" /> : <>{editingId ? <RefreshCw size={18} /> : <Plus size={18} />} {editingId ? 'Güncelle' : 'Ekle'}</>}
+                        </button>
+                    </div>
                 </form>
             </div>
 
@@ -185,9 +217,14 @@ function ProductManager({ products, api }) {
                                     <p className="text-xs text-gray-400">{product.category} • {product.price} SP</p>
                                 </div>
                             </div>
-                            <button onClick={() => handleDelete(product.id)} className="text-red-300 hover:text-red-500 p-2">
-                                <Trash2 size={16} />
-                            </button>
+                            <div className="flex items-center gap-1">
+                                <button onClick={() => handleEdit(product)} className="text-blue-300 hover:text-blue-500 p-2">
+                                    <Copy size={16} className="rotate-180" /> {/* Using Copy icon as Edit for now or existing icons */}
+                                </button>
+                                <button onClick={() => handleDelete(product.id)} className="text-red-300 hover:text-red-500 p-2">
+                                    <Trash2 size={16} />
+                                </button>
+                            </div>
                         </div>
                     ))}
                 </div>
