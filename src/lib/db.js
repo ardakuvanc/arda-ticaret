@@ -115,7 +115,7 @@ export const api = {
         });
 
         if (!foundDoc) {
-            throw new Error("Bu kod geçerli değil veya kullanılmış 😢");
+            throw new Error("Bu kod geçerli değil veya kullanılmış. Mlsf askm 😢");
         }
 
         // Update User

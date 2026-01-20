@@ -32,10 +32,10 @@ export default function Layout() {
                     )}
 
                     {user && (
-                        <div className="flex items-center gap-1.5 bg-love-100 px-3 py-1.5 rounded-full text-love-600 font-bold shadow-sm">
+                        <Link to="/profile" className="flex items-center gap-1.5 bg-love-100 px-3 py-1.5 rounded-full text-love-600 font-bold shadow-sm hover:bg-love-200 transition-colors">
                             <Heart className="w-4 h-4 fill-current animate-pulse" />
                             <span>{user.balance}</span>
-                        </div>
+                        </Link>
                     )}
                 </div>
             </div>

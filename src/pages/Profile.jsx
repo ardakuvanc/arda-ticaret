@@ -35,7 +35,7 @@ export default function Profile() {
             </div>
 
             {/* Redeem Code */}
-            <div className="bg-gradient-to-r from-gold-400 to-yellow-300 p-5 rounded-2xl shadow-sm text-white">
+            <div className="bg-gradient-to-br from-violet-500 to-fuchsia-500 p-5 rounded-2xl shadow-lg shadow-violet-200 text-white">
                 <div className="flex items-center gap-2 mb-3">
                     <Gift size={20} />
                     <h2 className="font-bold">Hediye Kodu</h2>
