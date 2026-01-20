@@ -75,9 +75,9 @@ export default function Home() {
                         <div className="z-10">
                             <h3 className="font-bold text-gray-800 text-lg">Şans Çarkı</h3>
                             <p className="text-xs text-gray-600 font-bold">
-                                {!user.lastSpin || new Date(user.lastSpin).toDateString() !== new Date().toDateString() || (user.spinCount || 0) < 2
+                                {user.lastSpinDate !== new Date().toDateString() || (user.spinCount || 0) < 1
                                     ? '✨ Şansın Var!'
-                                    : 'Yarın Gel'}
+                                    : 'Yarın Dene'}
                             </p>
                         </div>
                     </motion.div>

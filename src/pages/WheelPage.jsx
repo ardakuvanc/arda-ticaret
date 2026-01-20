@@ -37,7 +37,7 @@ export default function WheelPage() {
     const handleSpin = async () => {
         if (spinning) return;
         if (!isEligible) {
-            toast.error("Bugünlük şansını denedin! Yarın gel ❤️");
+            toast.error("Bugünlük şansını denedin hayatım! Yarın gel ❤️");
             return;
         }
 
@@ -166,7 +166,7 @@ export default function WheelPage() {
 
             {!isEligible && (
                 <div className="mt-4 bg-orange-50 text-orange-600 px-4 py-2 rounded-lg text-xs font-bold border border-orange-100">
-                    Günlük hakkın doldu. Yarın 00:00'da yenilenecek!
+                    Günlük hakkın doldu hayatım! Yarın 00:00'da yenilenecek!
                 </div>
             )}
         </div>

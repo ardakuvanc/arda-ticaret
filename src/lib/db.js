@@ -83,7 +83,7 @@ export const api = {
         const querySnapshot = await getDocs(q);
 
         if (!querySnapshot.empty) {
-            throw new Error("Bu kod zaten var aşkım! Başka bir şey bul 🤔");
+            throw new Error("Bu kod zaten var! Başka bir şey bul 🤔");
         }
 
         await addDoc(collection(db, "codes"), codeObj);
@@ -158,7 +158,7 @@ export const api = {
         }
 
         if (currentSpins >= DAILY_SPIN_LIMIT) {
-            throw new Error("Bugünlük çark hakkın doldu aşkım! Yarın yine gel ❤️"); // 00:00 logic is implicit by date string change
+            throw new Error("Bugünlük çark hakkın doldu kıvırcığım! Yarın yine gel ❤️"); // 00:00 logic is implicit by date string change
         }
 
         await updateDoc(userRef, {
@@ -181,7 +181,7 @@ export const api = {
         const userSnap = await getDoc(userRef);
 
         if (userSnap.data().balance < totalCost) {
-            throw new Error("Yeterli sevgi puanın yok 🥺 biraz biriktir!");
+            throw new Error("Ytrl svgi pnın yk mlsf 🥺 brz brktr!");
         }
 
         await updateDoc(userRef, {

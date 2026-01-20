@@ -142,7 +142,7 @@ export default function LoginPage() {
                 </div>
             </div>
 
-            <p className="mt-8 text-xs text-gray-400 opacity-60">Arda Kuvancı tarafından aşkla yapıldı ❤️</p>
+            <p className="mt-8 text-xs text-gray-400 opacity-60">Arda Kuvanc tarafından aşkla yapıldı ❤️</p>
         </div>
     );
 }

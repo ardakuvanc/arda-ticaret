@@ -106,7 +106,7 @@ export const StoreProvider = ({ children }) => {
             setUser({ uid: user.uid, ...updatedUser });
 
             clearCart();
-            toast.success("Siparişin alındı aşkım! ❤️");
+            toast.success("Siparişin alındı sevgilimm! ❤️");
             return true;
         } catch (error) {
             toast.error(error.message);
