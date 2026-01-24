@@ -7,14 +7,14 @@ import toast from 'react-hot-toast';
 
 // Sadece Puanlar
 const PRIZES = [
-    { label: '50 Puan', value: 50, color: '#ffb3ba' },
-    { label: '10 Puan', value: 10, color: '#bae1ff' },
-    { label: '100 Puan', value: 100, color: '#ffdfba' },
-    { label: '250 Puan', value: 250, color: '#ffffba' },
+    { label: '50 Puan', value: 50, color: '#e6e6fa' },
+    { label: '100 Puan', value: 100, color: '#ffb3ba' },
+    { label: '250 Puan', value: 250, color: '#bae1ff' },
     { label: '500 Puan', value: 500, color: '#baffc9' },
+    { label: '750 Puan', value: 750, color: '#ffffba' },
     { label: '1000 Puan', value: 1000, color: '#eecbff' },
-    { label: '5 Puan', value: 5, color: '#e6e6fa' },
-    { label: '25 Puan', value: 25, color: '#ffe4e1' },
+    { label: '50 Puan', value: 50, color: '#ffe4e1' },
+    { label: '100 Puan', value: 100, color: '#f0f0f0' },
 ];
 
 export default function WheelPage() {
@@ -23,21 +23,23 @@ export default function WheelPage() {
     const controls = useAnimation();
     const navigate = useNavigate();
 
-    // Check Eligibility safely
+    // Check Eligibility safely (12 Hour Calc)
     const isEligible = (() => {
         if (!user) return false;
-        const today = new Date().toDateString();
-        // If last spin wasn't today, eligible.
-        if (user.lastSpinDate !== today) return true;
-        // If today, check count (limit is 1 for non-admin, usually)
-        // Hardcoded limit check for UI (backend enforces it too)
-        return (user.spinCount || 0) < 1;
+        // If never spun, eligible
+        if (!user.lastSpinAt) return true;
+
+        const last = new Date(user.lastSpinAt).getTime();
+        const now = Date.now();
+        const hoursPassed = (now - last) / (1000 * 60 * 60);
+
+        return hoursPassed >= 12;
     })();
 
     const handleSpin = async () => {
         if (spinning) return;
         if (!isEligible) {
-            toast.error("Bugünlük şansını denedin hayatım! Yarın gel ❤️");
+            toast.error("Henüz süren dolmadı hayatım! 12 saatte bir şansın var ❤️");
             return;
         }
 
@@ -100,7 +102,7 @@ export default function WheelPage() {
     return (
         <div className="flex flex-col items-center justify-center py-10 pb-24">
             <h1 className="text-3xl font-hand font-bold text-love-600 mb-2">Şans Çarkı</h1>
-            <p className="text-gray-500 mb-8 text-sm">Günde 1 kez çevir, puanları kap! 🌸</p>
+            <p className="text-gray-500 mb-8 text-sm">12 saatte 1 kez çevir, puanları kap! 🌸</p>
 
             <div className="relative w-80 h-80 md:w-96 md:h-96">
                 {/* Pointer (Indicator) at TOP */}
@@ -161,12 +163,12 @@ export default function WheelPage() {
                 disabled={spinning || !isEligible}
                 className="mt-12 bg-gradient-to-r from-love-400 to-love-600 text-white font-bold py-4 px-12 rounded-full shadow-xl hover:shadow-love-200/50 hover:scale-105 disabled:bg-none disabled:bg-gray-300 disabled:shadow-none disabled:cursor-not-allowed transition-all active:scale-95"
             >
-                {spinning ? 'Bol Şans... 🍀' : isEligible ? 'Çarkı Çevir!' : 'Yarın Görüşürüz 👋'}
+                {spinning ? 'Bol Şans... 🍀' : isEligible ? 'Çarkı Çevir!' : 'Sonra Görüşürüz 👋'}
             </button>
 
             {!isEligible && (
                 <div className="mt-4 bg-orange-50 text-orange-600 px-4 py-2 rounded-lg text-xs font-bold border border-orange-100">
-                    Günlük hakkın doldu hayatım! Yarın 00:00'da yenilenecek!
+                    Süren dolmadı! 12 saatte bir şansın yenilenir.
                 </div>
             )}
         </div>

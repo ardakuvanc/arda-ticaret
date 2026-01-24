@@ -156,26 +156,16 @@ export const api = {
         const userData = userSnap.data();
 
         const now = new Date();
-        const todayStr = now.toDateString();
+        const lastSpinAt = userData.lastSpinAt ? new Date(userData.lastSpinAt).getTime() : 0;
+        const twelveHoursMs = 12 * 60 * 60 * 1000;
 
-        // Control Logic
-        let currentSpins = userData.spinCount || 0;
-
-        // Reset if new day
-        if (userData.lastSpinDate !== todayStr) {
-            currentSpins = 0;
-            // We need to update this reset in DB as well, getting ready for the write
-        }
-
-        if (currentSpins >= DAILY_SPIN_LIMIT) {
-            throw new Error("Bugünlük çark hakkın doldu kıvırcığım! Yarın yine gel ❤️"); // 00:00 logic is implicit by date string change
+        if (now.getTime() - lastSpinAt < twelveHoursMs) {
+            throw new Error("Henüz süren dolmadı hayatım! 12 saatte bir şansın var ❤️");
         }
 
         await updateDoc(userRef, {
             balance: increment(prize),
-            lastSpinDate: todayStr,
-            spinCount: (userData.lastSpinDate !== todayStr) ? 1 : increment(1),
-
+            lastSpinAt: now.toISOString(),
             history: arrayUnion({
                 id: Date.now(),
                 type: 'earn',
