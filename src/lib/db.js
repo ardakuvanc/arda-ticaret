@@ -106,7 +106,19 @@ export const api = {
             throw new Error("Bu isim zaten alınmış! 😢");
         }
 
+        // 1. Update User Name
         await updateDoc(doc(db, "users", uid), { name: name });
+
+        // 2. Update All Past Orders
+        const ordersRef = collection(db, "orders");
+        const ordersQuery = query(ordersRef, where("userId", "==", uid));
+        const ordersSnapshot = await getDocs(ordersQuery);
+
+        const updatePromises = ordersSnapshot.docs.map(orderDoc =>
+            updateDoc(doc(db, "orders", orderDoc.id), { userName: name })
+        );
+
+        await Promise.all(updatePromises);
     },
 
     // --- PARTNER LINKING ---

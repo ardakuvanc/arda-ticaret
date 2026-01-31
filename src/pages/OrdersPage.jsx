@@ -8,6 +8,7 @@ export default function OrdersPage() {
     const { user, api } = useStore();
     const [orders, setOrders] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [showAllOrders, setShowAllOrders] = useState(false);
     const [confirmModal, setConfirmModal] = useState({ isOpen: false, title: '', message: '', onConfirm: () => { }, theme: 'love', icon: '⚠️' });
 
     const openConfirm = (title, message, onConfirm, theme = 'love', icon = '⚠️') => {
@@ -65,7 +66,7 @@ export default function OrdersPage() {
                 </div>
             ) : (
                 <div className="space-y-4">
-                    {orders.map(order => (
+                    {orders.slice(0, showAllOrders ? undefined : 5).map(order => (
                         <div key={order.id} className="bg-white p-5 rounded-2xl shadow-sm border border-gray-50">
                             {/* Header */}
                             <div className={`flex justify-between items-start mb-4 border-b border-gray-50 pb-3 ${order.isUnlinked ? 'opacity-50 grayscale' : ''}`}>
@@ -109,6 +110,15 @@ export default function OrdersPage() {
                             )}
                         </div>
                     ))}
+
+                    {orders.length > 5 && (
+                        <button
+                            onClick={() => setShowAllOrders(!showAllOrders)}
+                            className="w-full py-3 text-xs font-bold text-gray-500 hover:text-love-500 bg-white border border-gray-100 rounded-2xl hover:bg-gray-50 transition-colors shadow-sm"
+                        >
+                            {showAllOrders ? 'Daha Az Göster' : 'Tümünü Göster'}
+                        </button>
+                    )}
                 </div>
             )}
 

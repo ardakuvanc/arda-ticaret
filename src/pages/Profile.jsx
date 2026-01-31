@@ -11,6 +11,7 @@ export default function Profile() {
     const [code, setCode] = useState('');
     const [isEditingName, setIsEditingName] = useState(false);
     const [editName, setEditName] = useState('');
+    const [showAllHistory, setShowAllHistory] = useState(false);
     const navigate = useNavigate();
     const [confirmModal, setConfirmModal] = useState({ isOpen: false, title: '', message: '', onConfirm: () => { }, theme: 'love', icon: '⚠️' });
 
@@ -73,9 +74,9 @@ export default function Profile() {
                                 <button onClick={() => setIsEditingName(false)} className="p-1 bg-red-100 text-red-500 rounded-full hover:bg-red-200"><X size={16} /></button>
                             </div>
                         ) : (
-                            <h1 onClick={handleNameEdit} className="font-bold text-lg text-gray-800 flex items-center gap-2 cursor-pointer hover:text-love-500 group transition-colors">
+                            <h1 onClick={handleNameEdit} className="font-bold text-lg text-gray-800 flex items-center gap-2 cursor-pointer hover:text-love-500 transition-colors">
                                 {user.name}
-                                <Edit2 size={14} className="text-gray-300 opacity-0 group-hover:opacity-100 transition-opacity" />
+                                <Edit2 size={16} className="text-gray-400" />
                             </h1>
                         )}
                     </div>
@@ -228,17 +229,28 @@ export default function Profile() {
                     {user.history.length === 0 ? (
                         <p className="text-center text-sm text-gray-400 py-4">Henüz bir işlem yok.</p>
                     ) : (
-                        user.history.map(item => (
-                            <div key={item.id} className="bg-white p-3 rounded-xl flex items-center justify-between shadow-sm">
-                                <div>
-                                    <p className="font-bold text-sm text-gray-800">{item.description}</p>
-                                    <p className="text-[10px] text-gray-400">{new Date(item.date).toLocaleString('tr-TR')}</p>
+                        <>
+                            {[...user.history].reverse().slice(0, showAllHistory ? undefined : 5).map(item => (
+                                <div key={item.id} className="bg-white p-3 rounded-xl flex items-center justify-between shadow-sm">
+                                    <div>
+                                        <p className="font-bold text-sm text-gray-800">{item.description}</p>
+                                        <p className="text-[10px] text-gray-400">{new Date(item.date).toLocaleString('tr-TR')}</p>
+                                    </div>
+                                    <span className={`font-bold text-sm ${item.type === 'earn' ? 'text-green-500' : 'text-red-400'}`}>
+                                        {item.type === 'earn' ? '+' : ''}{item.amount}
+                                    </span>
                                 </div>
-                                <span className={`font-bold text-sm ${item.type === 'earn' ? 'text-green-500' : 'text-red-400'}`}>
-                                    {item.type === 'earn' ? '+' : ''}{item.amount}
-                                </span>
-                            </div>
-                        ))
+                            ))}
+
+                            {user.history.length > 5 && (
+                                <button
+                                    onClick={() => setShowAllHistory(!showAllHistory)}
+                                    className="w-full py-2 text-xs font-bold text-gray-500 hover:text-love-500 bg-gray-50 rounded-xl hover:bg-gray-100 transition-colors"
+                                >
+                                    {showAllHistory ? 'Daha Az Göster' : 'Tümünü Göster'}
+                                </button>
+                            )}
+                        </>
                     )}
                 </div>
             </div>
