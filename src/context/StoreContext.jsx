@@ -197,11 +197,11 @@ export const StoreProvider = ({ children }) => {
         return () => clearInterval(interval);
     }, [user]);
 
-    const markRead = () => {
+    const clearNotifications = () => {
         if (user) {
-            api.markNotificationsRead(user.uid);
-            // Optimistically update local
-            setNotifications(prev => prev.map(n => ({ ...n, read: true })));
+            api.clearNotifications(user.uid);
+            // Optimistically clear local
+            setNotifications([]);
             setUnreadCount(0);
         }
     };
@@ -232,7 +232,7 @@ export const StoreProvider = ({ children }) => {
         cart,
         notifications,
         unreadCount,
-        markRead,
+        clearNotifications,
         respondToLink,
         addToCart,
         removeFromCart,

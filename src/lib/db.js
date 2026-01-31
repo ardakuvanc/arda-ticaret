@@ -500,11 +500,8 @@ export const api = {
     },
 
     getPendingOrdersCount: async (uid) => {
-        // Simplified check only for badge
-        // Currently fetching all orders is heavy just for badge, but ok for small app
-        // Ideally use a separate count query
         const orders = await api.getOrders(uid);
-        return orders.filter(o => o.status === 'pending').length;
+        return orders.filter(o => o.status === 'pending' && !o.isUnlinked).length;
     },
 
     completeOrder: async (orderId, uid) => {
@@ -535,17 +532,15 @@ export const api = {
             .slice(0, 5); // limit 5
     },
 
-    markNotificationsRead: async (uid) => {
+    clearNotifications: async (uid) => {
         const q = query(
             collection(db, "notifications"),
-            where("userId", "==", uid),
-            where("read", "==", false)
+            where("userId", "==", uid)
         );
         const snapshot = await getDocs(q);
-        const batch = db.batch(); // Use batch? No db instance exposed for batch easily here without import.
-        // Simple loop
+        // Delete all
         snapshot.forEach(async (d) => {
-            await updateDoc(doc(db, "notifications", d.id), { read: true });
+            await deleteDoc(doc(db, "notifications", d.id));
         });
     }
 };

@@ -23,9 +23,9 @@ export default function PartnerLinkForm() {
                 type="text"
                 value={code}
                 onChange={(e) => setCode(e.target.value.toUpperCase())}
-                placeholder="Partner Kodunu Gir..."
+                placeholder="Partnerinin kodunu gir..."
                 maxLength={6}
-                className="flex-1 bg-white border border-gray-200 rounded-xl px-4 py-3 text-sm text-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-200 transition-all font-mono uppercase"
+                className="flex-1 bg-white border border-gray-200 rounded-xl px-4 py-3 text-sm text-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-200 transition-all font-mono"
             />
             <button
                 type="submit"

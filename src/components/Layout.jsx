@@ -6,7 +6,7 @@ import { cn } from '../lib/utils';
 import { motion } from 'framer-motion';
 
 export default function Layout() {
-    const { user, cart, api, notifications, unreadCount, markRead } = useStore();
+    const { user, cart, api, notifications, unreadCount, clearNotifications } = useStore();
     const location = useLocation();
     const [orderCount, setOrderCount] = useState(0);
 
@@ -51,7 +51,7 @@ export default function Layout() {
                             <div className="absolute top-full right-0 mt-2 w-64 bg-white rounded-2xl shadow-xl border border-gray-100 hidden group-hover:block transition-all z-50 overflow-hidden">
                                 <div className="p-3 bg-love-50 border-b border-love-100 flex justify-between items-center">
                                     <span className="font-bold text-xs text-love-600">Bildirimler</span>
-                                    <button onClick={markRead} className="text-[10px] text-gray-500 hover:text-love-500 underline">Tümünü Oku</button>
+                                    <button onClick={clearNotifications} className="text-[10px] text-gray-500 hover:text-love-500 underline">Tümünü Temizle</button>
                                 </div>
                                 <div className="max-h-60 overflow-y-auto">
                                     {notifications.length === 0 ? (
