@@ -10,16 +10,26 @@ export default function Layout() {
     const location = useLocation();
     const [orderCount, setOrderCount] = useState(0);
 
-    // Fetch pending orders check for badge
+    // Fetch new orders count (badge)
     useEffect(() => {
         if (!user) return;
+
         const checkOrders = async () => {
-            const count = await api.getPendingOrdersCount(user.uid);
+            // If we are ON the orders page, badge should be 0 (we are seeing them)
+            // But we might want to check for REALTIME new orders while on the page?
+            // For simplicity, hide badge on orders page.
+            if (location.pathname === '/orders') {
+                setOrderCount(0);
+                return;
+            }
+
+            const lastViewed = localStorage.getItem('lastOrdersViewed') || '1970-01-01T00:00:00.000Z';
+            const count = await api.getNewOrdersCount(user.uid, lastViewed);
             setOrderCount(count);
         };
+
         checkOrders();
-        // Optional: Poll every 30s or listen to logic? 
-        // For now simple fetch on mount/nav change
+
         const interval = setInterval(checkOrders, 10000);
         return () => clearInterval(interval);
     }, [user, location.pathname]); // Update when changing pages too

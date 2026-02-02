@@ -516,6 +516,27 @@ export const api = {
         return orders.filter(o => o.status === 'pending' && !o.isUnlinked).length;
     },
 
+    getNewOrdersCount: async (uid, lastViewedDate) => {
+        const userRef = doc(db, "users", uid);
+        const userSnap = await getDoc(userRef);
+        const userData = userSnap.data();
+
+        // 1. Current Partner's Orders + My Orders
+        let searchUids = [uid];
+        if (userData && userData.partnerUid) {
+            searchUids.push(userData.partnerUid);
+        }
+
+        const q = query(
+            collection(db, "orders"),
+            where("userId", "in", searchUids),
+            where("createdAt", ">", lastViewedDate)
+        );
+
+        const snapshot = await getDocs(q);
+        return snapshot.size;
+    },
+
     completeOrder: async (orderId, uid) => {
         const orderRef = doc(db, "orders", orderId);
         const orderSnap = await getDoc(orderRef);

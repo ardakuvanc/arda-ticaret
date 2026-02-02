@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useStore } from '../context/StoreContext';
-import { Package, Clock, CheckCircle } from 'lucide-react';
+import { Package, Clock, CheckCircle, Filter, User, RotateCcw } from 'lucide-react';
 import toast from 'react-hot-toast';
 import ConfirmationModal from '../components/ConfirmationModal';
 
@@ -9,6 +9,11 @@ export default function OrdersPage() {
     const [orders, setOrders] = useState([]);
     const [loading, setLoading] = useState(true);
     const [showAllOrders, setShowAllOrders] = useState(false);
+
+    // Filters
+    const [statusFilter, setStatusFilter] = useState('all'); // all | active | inactive
+    const [userFilter, setUserFilter] = useState('all'); // all | uid...
+
     const [confirmModal, setConfirmModal] = useState({ isOpen: false, title: '', message: '', onConfirm: () => { }, theme: 'love', icon: '⚠️' });
 
     const openConfirm = (title, message, onConfirm, theme = 'love', icon = '⚠️') => {
@@ -20,6 +25,9 @@ export default function OrdersPage() {
         try {
             const data = await api.getOrders(user.uid);
             setOrders(data);
+
+            // Mark as seen when orders are loaded
+            localStorage.setItem('lastOrdersViewed', new Date().toISOString());
         } catch (error) {
             console.error("Siparişler yüklenemedi:", error);
             toast.error("Siparişlerin yüklenemedi aşkım 🥺");
@@ -31,6 +39,9 @@ export default function OrdersPage() {
     useEffect(() => {
         fetchOrders();
     }, [user]);
+
+    // Unique Users for Filter
+    const uniqueUsers = [...new Map(orders.map(order => [order.userId, order.userName])).entries()];
 
     const handleComplete = (orderId) => {
         openConfirm(
@@ -50,6 +61,18 @@ export default function OrdersPage() {
         );
     };
 
+    // Filter Logic
+    const filteredOrders = orders.filter(order => {
+        // Status Filter
+        if (statusFilter === 'active' && order.status !== 'pending') return false;
+        if (statusFilter === 'inactive' && order.status !== 'delivered') return false;
+
+        // User Filter
+        if (userFilter !== 'all' && order.userId !== userFilter) return false;
+
+        return true;
+    });
+
     if (loading) return <div className="text-center py-10">Yükleniyor...</div>;
 
     return (
@@ -59,14 +82,80 @@ export default function OrdersPage() {
                 Siparişlerim
             </h1>
 
-            {orders.length === 0 ? (
+            {/* Filters */}
+            <div className="mb-6 flex flex-col gap-3">
+                {/* User Filter */}
+                <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
+                    <button
+                        onClick={() => setUserFilter('all')}
+                        className={`flex items-center gap-1 px-3 py-1.5 rounded-full text-xs font-bold whitespace-nowrap border transition-colors ${userFilter === 'all'
+                                ? 'bg-love-500 text-white border-love-500'
+                                : 'bg-white text-gray-500 border-gray-200 hover:border-love-300'
+                            }`}
+                    >
+                        <User size={12} />
+                        Herkes
+                    </button>
+                    {uniqueUsers.map(([uid, name]) => (
+                        <button
+                            key={uid}
+                            onClick={() => setUserFilter(uid)}
+                            className={`flex items-center gap-1 px-3 py-1.5 rounded-full text-xs font-bold whitespace-nowrap border transition-colors ${userFilter === uid
+                                    ? 'bg-love-500 text-white border-love-500'
+                                    : 'bg-white text-gray-500 border-gray-200 hover:border-love-300'
+                                }`}
+                        >
+                            {name || 'Bilinmeyen'}
+                        </button>
+                    ))}
+                </div>
+
+                {/* Status Filter */}
+                <div className="flex gap-2">
+                    <button
+                        onClick={() => setStatusFilter('all')}
+                        className={`flex-1 py-2 rounded-xl text-xs font-bold border transition-colors ${statusFilter === 'all'
+                                ? 'bg-love-100 text-love-600 border-love-200'
+                                : 'bg-white text-gray-500 border-gray-100'
+                            }`}
+                    >
+                        Tümü
+                    </button>
+                    <button
+                        onClick={() => setStatusFilter('active')}
+                        className={`flex-1 py-2 rounded-xl text-xs font-bold border transition-colors ${statusFilter === 'active'
+                                ? 'bg-orange-100 text-orange-600 border-orange-200'
+                                : 'bg-white text-gray-500 border-gray-100'
+                            }`}
+                    >
+                        Aktif (Bekleyen)
+                    </button>
+                    <button
+                        onClick={() => setStatusFilter('inactive')}
+                        className={`flex-1 py-2 rounded-xl text-xs font-bold border transition-colors ${statusFilter === 'inactive'
+                                ? 'bg-green-100 text-green-600 border-green-200'
+                                : 'bg-white text-gray-500 border-gray-100'
+                            }`}
+                    >
+                        Geçmiş
+                    </button>
+                </div>
+            </div>
+
+            {filteredOrders.length === 0 ? (
                 <div className="text-center py-10 bg-white rounded-3xl shadow-sm border border-gray-50">
-                    <Package size={48} className="mx-auto text-gray-300 mb-4" />
-                    <p className="text-gray-500">Henüz bir siparişin yok.</p>
+                    <Filter size={48} className="mx-auto text-gray-300 mb-4" />
+                    <p className="text-gray-500">Bu filtreye uygun sipariş yok.</p>
+                    <button
+                        onClick={() => { setStatusFilter('all'); setUserFilter('all'); }}
+                        className="mt-4 text-love-500 text-sm font-bold hover:underline flex items-center justify-center gap-1"
+                    >
+                        <RotateCcw size={14} /> Filtreleri Temizle
+                    </button>
                 </div>
             ) : (
                 <div className="space-y-4">
-                    {orders.slice(0, showAllOrders ? undefined : 5).map(order => (
+                    {filteredOrders.slice(0, showAllOrders ? undefined : 5).map(order => (
                         <div key={order.id} className="bg-white p-5 rounded-2xl shadow-sm border border-gray-50">
                             {/* Header */}
                             <div className={`flex justify-between items-start mb-4 border-b border-gray-50 pb-3 ${order.isUnlinked ? 'opacity-50 grayscale' : ''}`}>
@@ -111,7 +200,7 @@ export default function OrdersPage() {
                         </div>
                     ))}
 
-                    {orders.length > 5 && (
+                    {filteredOrders.length > 5 && (
                         <button
                             onClick={() => setShowAllOrders(!showAllOrders)}
                             className="w-full py-3 text-xs font-bold text-gray-500 hover:text-love-500 bg-white border border-gray-100 rounded-2xl hover:bg-gray-50 transition-colors shadow-sm"
