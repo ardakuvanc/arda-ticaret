@@ -23,22 +23,30 @@ export const StoreProvider = ({ children }) => {
     useEffect(() => {
         const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
             setLoading(true);
-            if (currentUser) {
-                // Fetch full User Data from Firestore
-                const userData = await api.getUserData(currentUser.uid);
-                if (userData) {
-                    setUser({ uid: currentUser.uid, ...userData });
+            try {
+                if (currentUser) {
+                    // Fetch full User Data from Firestore
+                    const userData = await api.getUserData(currentUser.uid);
+                    if (userData) {
+                        setUser({ uid: currentUser.uid, ...userData });
+                    } else {
+                        // Fail-safe
+                        setUser({ uid: currentUser.uid, email: currentUser.email });
+                    }
                 } else {
-                    // Fail-safe
+                    setUser(null);
+                }
+                // Always fetch products regardless of auth? or only if logged in?
+                // Let's fetch public products.
+                await fetchProducts();
+            } catch (error) {
+                console.error("Auth listener error:", error);
+                if (currentUser) {
                     setUser({ uid: currentUser.uid, email: currentUser.email });
                 }
-            } else {
-                setUser(null);
+            } finally {
+                setLoading(false);
             }
-            // Always fetch products regardless of auth? or only if logged in?
-            // Let's fetch public products.
-            fetchProducts();
-            setLoading(false);
         });
         return () => unsubscribe();
     }, []);

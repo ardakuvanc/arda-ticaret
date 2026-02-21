@@ -3,7 +3,7 @@ import { getAuth } from "firebase/auth";
 import { getFirestore } from "firebase/firestore";
 
 const firebaseConfig = {
-    apiKey: "AIzaSyDgE78b8nLx_ptuWACECv3FgQcitARTa_M",
+    apiKey: import.meta.env.VITE_FIREBASE_API_KEY || "",
     authDomain: "arda-ticaret.firebaseapp.com",
     projectId: "arda-ticaret",
     storageBucket: "arda-ticaret.firebasestorage.app",

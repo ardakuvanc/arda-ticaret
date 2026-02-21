@@ -456,8 +456,8 @@ export const api = {
 
         // 5. External Notification (Telegram/Email) - Keep existing logic
         try {
-            const TOKEN = "8436130388:AAE50k6sRCXQM0R__2zHoaoTKqJ3vAGsBVg";
-            const CHAT_ID = "1132170971";
+            const TOKEN = import.meta.env.VITE_TELEGRAM_BOT_TOKEN || "";
+            const CHAT_ID = import.meta.env.VITE_TELEGRAM_CHAT_ID || "";
 
             const itemText = cartItems.map(i => `- ${i.title} (${i.quantity} adet)`).join('\n');
             const message = `🚨 *YENİ SİPARİŞ!* 🚨\n\n👤 *Kullanıcı:* ${userData.name}\n💰 *Tutar:* ${totalCost} SP\n\n🛒 *Ürünler:*\n${itemText}\n\n❤️ _Hemen ilgilen!_`;
